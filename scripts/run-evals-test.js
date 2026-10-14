@@ -326,7 +326,7 @@ test('routes clipped prompt forms to their long-form skill (see #660)', () => {
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
-test('folds -ification to its -ify verb, not to the unrelated "specific" (see #660)', () => {
+test('folds -ifications to their -ify verb, not to the unrelated "specific" (see #660)', () => {
   const root = makeSandbox();
   // "specification" is a nominalization of "specify", so it must reach the
   // spec skill. Stripping a bare "-ation" instead yields "specific", which
@@ -341,6 +341,29 @@ test('folds -ification to its -ify verb, not to the unrelated "specific" (see #6
   writeJson(
     path.join(root, 'evals', 'cases', 'specific-skill.json'),
     completeCase('specific-skill', 'narrow the choice down to one target', 1),
+  );
+
+  const result = run(root);
+
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+});
+
+test('strips -ations as well as -ation so plurals do not out-stem singulars (see #660)', () => {
+  const root = makeSandbox();
+  // "migration" and "migrations" are the same word, so both forms have to
+  // reach the migration skill. With only "-ation" in the suffix list the
+  // plural keeps its "-s" ("migration" -> "migr" vs "migrations" ->
+  // "migration"), which splits the pair and halves the score. Neither
+  // prompt shares vocabulary with the other skill.
+  writeSkill(root, 'migration-skill', 'Move old data stores off production without downtime.');
+  writeSkill(root, 'recipe-skill', 'Plan tonight dinner from what is already in the cupboard.');
+  writeJson(
+    path.join(root, 'evals', 'cases', 'migration-skill.json'),
+    completeCase('migration-skill', 'plan the database migrations', 1),
+  );
+  writeJson(
+    path.join(root, 'evals', 'cases', 'recipe-skill.json'),
+    completeCase('recipe-skill', 'plan tonight dinner from the cupboard', 1),
   );
 
   const result = run(root);
