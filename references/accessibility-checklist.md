@@ -71,7 +71,7 @@ Quick reference for WCAG 2.1 AA compliance. Use alongside the `frontend-ui-engin
 
 ```html
 <!-- Explicit label association -->
-<label htmlFor="email">Email address</label>
+<label for="email">Email address</label>
 <input id="email" type="email" required />
 
 <!-- Implicit wrapping -->
@@ -115,7 +115,7 @@ Quick reference for WCAG 2.1 AA compliance. Use alongside the `frontend-ui-engin
 <ul role="list" aria-label="Tasks">
   <li>
     <input type="checkbox" id="task-1" aria-label="Complete: Buy groceries" />
-    <label htmlFor="task-1">Buy groceries</label>
+    <label for="task-1">Buy groceries</label>
   </li>
 </ul>
 ```
