@@ -272,7 +272,7 @@ Test at these breakpoints: 320px, 768px, 1024px, 1440px.
 // Skeleton loading (not spinners for content)
 function TaskListSkeleton() {
   return (
-    <div className="space-y-3" aria-busy="true" aria-label="Loading tasks">
+    <div className="space-y-3" role="status" aria-busy="true" aria-label="Loading tasks">
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="h-12 bg-muted animate-pulse rounded" />
       ))}

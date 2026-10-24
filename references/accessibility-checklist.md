@@ -104,7 +104,7 @@ Quick reference for WCAG 2.1 AA compliance. Use alongside the `frontend-ui-engin
 </dialog>
 
 <!-- Loading states -->
-<div aria-busy="true" aria-label="Loading tasks">
+<div role="status" aria-busy="true" aria-label="Loading tasks">
   <Spinner />
 </div>
 ```
