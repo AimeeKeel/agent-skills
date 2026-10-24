@@ -192,7 +192,7 @@ For a shared cache, the same idea needs a distributed lock, or `stale-while-reva
 
 ```bash
 # Lighthouse CLI
-npx lighthouse https://localhost:3000 --output json --output-path ./report.json
+npx lighthouse http://localhost:3000 --output json --output-path ./report.json
 
 # Bundle analysis
 npx webpack-bundle-analyzer stats.json
