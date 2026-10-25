@@ -32,6 +32,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { parseFrontmatter } = require('./lib/skill-lint');
+const { executionFailure } = require('./lib/execution-status');
 const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
@@ -517,8 +518,9 @@ function extractExecutorModel(trace) {
 }
 
 function clearGradingSlot(base) {
-  fs.rmSync(`${base}.grading.json`, { force: true });
-  fs.rmSync(`${base}.grading.raw.txt`, { force: true });
+  for (const suffix of ['grading.json', 'grading.raw.txt', 'execution.raw.txt', 'execution.error.txt']) {
+    fs.rmSync(`${base}.${suffix}`, { force: true });
+  }
 }
 
 function persistGradingOutcome(base, grading, raw, runMeta) {
@@ -594,14 +596,29 @@ function runBehavioral(skillName, dryRun) {
     // headless denials would force the exact narrate-instead-of-perform
     // failure mode that trace grading exists to catch.
     try {
-    const trace = execFileSync(
-      'claude',
-      ['-p', '--verbose', '--output-format', 'stream-json',
-        '--permission-mode', 'acceptEdits',
-        '--allowedTools', EXECUTOR_TOOLS,
-        '--append-system-prompt', `Follow this skill exactly:\n\n${fs.readFileSync(skillFile, 'utf8')}`],
-      { input: ev.prompt, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, cwd: workspace, timeout: EXECUTOR_TIMEOUT_MS },
-    );
+    let trace;
+    let executorError;
+    try {
+      trace = execFileSync(
+        'claude',
+        ['-p', '--verbose', '--output-format', 'stream-json',
+          '--permission-mode', 'acceptEdits',
+          '--allowedTools', EXECUTOR_TOOLS,
+          '--append-system-prompt', `Follow this skill exactly:\n\n${fs.readFileSync(skillFile, 'utf8')}`],
+        { input: ev.prompt, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, cwd: workspace, timeout: EXECUTOR_TIMEOUT_MS },
+      );
+    } catch (error) {
+      trace = String(error.stdout || '');
+      executorError = error;
+    }
+    const failure = executorError ? `${executorError.code || 'process failed'}: ${executorError.message}` : executionFailure(trace);
+    if (failure) {
+      fs.writeFileSync(`${base}.execution.raw.txt`, trace);
+      fs.writeFileSync(`${base}.execution.error.txt`, `${failure}\n${executorError?.stderr || ''}`);
+      console.log(`  ✗  eval ${ev.id}: execution incomplete: ${failure}; raw execution retained`);
+      failures++;
+      continue;
+    }
     const gradingInstructions = kind === 'dialogue'
       ? [
         'You are grading an agent dialogue transcript against explicit expectations.',
