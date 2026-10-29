@@ -37,6 +37,13 @@ Tier 3 supports two behavioral artifact kinds. `execution` is the default: each 
 
 The executor runs with an explicit permission mode (`--permission-mode acceptEdits` plus a pre-approved tool list) so execution evals can genuinely edit files, run commands, inspect diffs, and make commits rather than being denied and narrating instead. Traces are fenced as untrusted data in the grader prompt and piped to the grader over stdin (they can be megabytes; argv would hit the OS argument-size limit), executor and grader calls carry timeouts, and grader output is validated as JSON before being written to `evals/results/` (gitignored) in skill-creator's `grading.json` shape. Discipline skills also include pressure cases for time pressure, sunk cost, and authority pressure; these verify that the workflow still holds when the prompt argues for skipping it.
 
+Only completed executor streams reach the grader: require an explicit successful
+terminal result, no permission denials, and a returned observation for every tool
+call. A returned failed probe may still recover before completion. Failed or
+incomplete executions retain `.execution.raw.txt` and `.execution.error.txt`
+beside the case's result slot, produce no score, and do not stop later cases.
+These latest-attempt diagnostics are cleared when that case is rerun.
+
 ## Plugin evals (Claude Code)
 
 `claude plugin eval` (Claude Code 2.1.269 or later) loads the whole plugin, every skill at once, runs the cases under `evals/plugin/`, and scores each case with and without the plugin. It complements Tier 2 rather than replacing it: Tier 2 checks that a description carries the vocabulary users say; this checks that Claude Code's own router picks the skill on a natural prompt, and what the skill adds to the reply (the `Δ` column).
