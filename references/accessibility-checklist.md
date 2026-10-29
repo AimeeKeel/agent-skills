@@ -124,7 +124,7 @@ Quick reference for WCAG 2.1 AA compliance. Use alongside the `frontend-ui-engin
 
 ```bash
 # Automated audit
-npx axe-core          # Programmatic accessibility testing
+npx --package=@axe-core/cli axe http://localhost:3000
 npx pa11y             # CLI accessibility checker
 
 # In browser
